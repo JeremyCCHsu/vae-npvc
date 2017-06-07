@@ -1,0 +1,4 @@
+logdir
+test*
+__init__.py
+__pycache__
