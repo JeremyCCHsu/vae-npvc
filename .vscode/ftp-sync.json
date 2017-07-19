@@ -2,7 +2,7 @@
     "host": "140.109.22.106",
     "username": "jrm",
     "remotePath": "./proj/vae-npvc",
-    "privateKeyPath": "C:/Users/JeremyCCHsu/Desktop/Apps/sat_rsa.prv.ppk",
+    "privateKeyPath": "C:/Users/alche/Desktop/Apps/ssh keys/iis106.ppk",
     "port": 22,
     "protocol": "sftp",
     "secure": false,

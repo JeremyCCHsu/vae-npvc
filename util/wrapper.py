@@ -1,9 +1,19 @@
+import json
 import os
 import sys
-import json
-import tensorflow as tf
 from datetime import datetime
 
+import tensorflow as tf
+
+
+def get_checkpoint(logdir):
+    ''' Get the first checkpoint '''
+    ckpt = tf.train.get_checkpoint_state(logdir)
+    if ckpt:
+        return ckpt.model_checkpoint_path
+    else:
+        print('No checkpoint found')
+        return None
 
 def save(saver, sess, logdir, step):
     ''' Save a model to logdir/model.ckpt-[step] '''

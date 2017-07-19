@@ -1,4 +1,5 @@
 logdir
-test*
+test*.*
 __init__.py
 __pycache__
+.vscode

@@ -1,51 +1,74 @@
-# Voice Conversion from Non-parallel Corpora Using Variational Auto-encoder
-Part of the code used in [our paper](https://arxiv.org/abs/1610.04019).  
+# Papers
+1. [Voice Conversion from Non-parallel Corpora Using Variational Auto-encoder](https://arxiv.org/abs/1610.04019)  
+2. [Voice Conversion from Unaligned Corpora using Variational Autoencoding Wasserstein Generative Adversarial Networks](https://arxiv.org/abs/1704.00849)
 
-This repo does not include the following modules due to authorship:  
- - feature extraction
- - F0 conversion module
- - waveform synthesis  
 
-*The modules above are maintained by one of my colleagues.*
+# Installation
+```bash
+pip install -U pip
+pip install -r requirements.txt
+```
+
+Note: `soundfile` might require `sudo apt-get install`
+
 
 # Dependency
-Tensorflow 1.1
+- Tensorflow 1.2.1
+- Numpy
+- Soundfile
+- PyWorld
+  - Cython
 
-## Feature
-### Extraction
-Starting from wav  
--> STRAIGHT spectrum (denoted by `sp`; frame rate: 5 ms, frame length: 20 ms)  
--> frame-wise energy normalization   
--> log (base 10)  
 
-Note:
-  1. Underour setting, the resulting values were in the range of about [-6.5, 0].  
-  2. The energy was extracted as an independent feature which we did not modify.  
-     (energy was unmodified during voice conversion)
-  
-### TF Record format
-The `sp` was stored in raw binary format (4 bytes per value).  
-Format:
-```
-[[i, s1, s2, ..., s513],
- [i, s1, s2, ..., s513],
- ...,
- [i, s1, s2, ..., s513]]
-```
-where `i` is the speaker index (0 - 9) and `s` is the `sp`.  
+# Dataset
+Voice Conversion Challenge 2016 (VCC2016)  
+Download: http://datashare.is.ed.ac.uk/handle/10283/2042
+Download all files
 
-Note:
-  - The speaker identity `i` was stored in `np.float32` but will be converted into `tf.int64` in the `VCC2016TFRManager` in `vcc2016io`. 
-  - I shouldn't have stored the speaker identity per frame;
-    it was just for implementation simplicity. 
+
+# Model
+1. Conditional VAE
+2. Conditional VAE + WGAN
+
+
+# File/Folder
+dataset
+  vcc2016
+    wav
+    bin
+      Training Set
+      Testing Set
+        SF1
+        SF2
+        ...
+        TM3
+etc
+  xmax.npf
+  xmin.npf
+util (submodule)
+model
+logdir
+architecture*.json
+
+analyzer.py  
+build.py  
+trainer*.py
+vcc2016_vae.py  
+(validate.py)  
+convert.py
+
 
 # Usage
- - Specify the network architecture and the training hyper-parameters in `architecture.json`.
- - Run `python train.py`
- - Get the resulting models in `logdir/train/[date]`
- - Run `python validate --logdir [logdir] --target_id [integer] --file_pattern [glob pattern]`
- - Get the input, the reconstructed, and the converted spectra in the `logdir`.  
+1. Run `analyzer.py` to extract features and write features into binary files.  
+2. Run `build.py` to record some stats, such as spectral extrema and pitch
 
-# About
-The original code base was originally built in March, 2016.  
-Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and put it on this repo.
+
+TODO:
+Delete unnecessary files.
+
+
+
+# Discrepancy
+1. In the original paper, I used the STRAIGHT vocoder (which is not open-sourced).  
+   However, in order to release this repo so that things can be reproduced,  
+   I adopted the WORLD vocoder in this repo.
