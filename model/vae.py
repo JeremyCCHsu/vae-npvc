@@ -223,6 +223,7 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
                 loss['l_G'] = - loss['E_fake'] + (- logPx + D_KL)
                 loss['D_KL'] = D_KL
                 loss['logP'] = logPx
+                loss['gp'] = gp
 
                 lam = self.arch['training']['lambda']                
                 loss['l_D'] = - loss['W_dist'] + lam * gp

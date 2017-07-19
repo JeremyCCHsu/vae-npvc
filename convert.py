@@ -1,14 +1,22 @@
 import json
 import os
 
+import tensorflow as tf
 import numpy as np
 import soundfile as sf
-import tensorflow as tf
-from analyzer import SPEAKERS, Tanhize, pw2wav, read_whole_features
-from model.vae import ConvVAE
-from util.wrapper import load
-# from util.image import gray2jet
 
+from util.wrapper import load
+from analyzer import read_whole_features, SPEAKERS, pw2wav
+from model.vae import ConvVAE
+from analyzer import Tanhize
+# from util.image import gray2jet
+from datetime import datetime
+
+def get_default_output(logdir_root):
+    STARTED_DATESTRING = datetime.now().strftime('%0m%0d-%0H%0M-%0S-%Y')
+    logdir = os.path.join(logdir_root, 'output', STARTED_DATESTRING)
+    print('Using default logdir: {}'.format(logdir))        
+    return logdir
 
 def convert_f0(f0, src, trg):
     mu_s, std_s = np.fromfile(os.path.join('./etc', '{}.npf'.format(src)), np.float32)
@@ -19,10 +27,17 @@ def convert_f0(f0, src, trg):
     return lf0
 
 
+def nh_to_nchw(x):
+    with tf.name_scope('NH_to_NCHW'):
+        x = tf.expand_dims(x, 1)      # [b, h] => [b, c=1, h]
+        return tf.expand_dims(x, -1)  # => [b, c=1, h, w=1]
+
+
 args = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('checkpoint', None, 'root of log dir')
 tf.app.flags.DEFINE_string('src', 'SF1', 'source speaker [SF1 - SM2]')
 tf.app.flags.DEFINE_string('trg', 'TM3', 'target speaker [SF1 - TM3]')
+tf.app.flags.DEFINE_string('output', './logdir', 'root of output dir')
 
 FS = 16000
 
@@ -37,14 +52,13 @@ def main():
         xmin=np.fromfile('./etc/xmin.npf'),
     )
 
-    features = read_whole_features('./dataset/vcc2016/bin/Testing Set/{}/200001.bin'.format(args.src))
+    features = read_whole_features('./dataset/vcc2016/bin/Testing Set/{}/*.bin'.format(args.src))
 
-    y_s = features['speaker']
     x = normalizer.forward_process(features['sp'])
-    x = tf.expand_dims(x, 1)   # [b, h] => [b, c=1, h]
-    x = tf.expand_dims(x, -1)  # => [b, c=1, h, w=1]
-    # import pdb; pdb.set_trace()
-    y_t = SPEAKERS.index(args.trg) * tf.ones(shape=[tf.shape(x)[0],], dtype=tf.int64)
+    x = nh_to_nchw(x)
+    y_s = features['speaker']
+    y_t_id = tf.placeholder(dtype=tf.int64)
+    y_t = y_t_id * tf.ones(shape=[tf.shape(x)[0],], dtype=tf.int64)
 
     machine = ConvVAE(arch, is_training=True)
     z = machine.encode(x)
@@ -52,7 +66,7 @@ def main():
     x_t = tf.squeeze(x_t)
     x_t = normalizer.backward_process(x_t)
 
-    # for sanity check (validation)
+    # For sanity check (validation)
     x_s = machine.decode(z, y_s)
     x_s = tf.squeeze(x_s)
     x_s = normalizer.backward_process(x_s)
@@ -62,26 +76,30 @@ def main():
 
     # TODO: add file loop, src loop, trg loop
 
+    output_dir = get_default_output(args.output_dir)
+
     saver = tf.train.Saver()
     sv = tf.train.Supervisor()
     with sv.managed_session() as sess:
         load(saver, sess, logdir, ckpt=ckpt)
-
-        feat, f0, sp = sess.run([features, f0_t, x_t])
-        # import pdb; pdb.set_trace()
-        feat['sp'] = sp
-        feat['f0'] = f0
-        y = pw2wav(feat)
-        sf.write('test-{}-{}.wav'.format(args.src, args.trg), y, FS)
-
-        # converted, reconst = sess.run([x_t, x_s])
-        # with tf.gfile.GFile('test-conv.png', 'wb') as fp:
-        #     fp.write(converted)
-
-        # with tf.gfile.GFile('test-reconst.png', 'wb') as fp:
-        #     fp.write(reconst)
-
-    # TODO: validator should be periodically executed during training. 
+        while True:
+            try:
+                feat, f0, sp = sess.run(
+                    [features, f0_t, x_t],
+                    feed_dict={y_t_id: SPEAKERS.index(args.trg)}
+                )
+                feat['sp'] = sp
+                feat['f0'] = f0
+                y = pw2wav(feat)
+                sf.write(
+                    os.path.join(output_dir, 
+                        '{}-{}.wav'.format(args.src, args.trg)
+                    ),
+                    y,
+                    FS,
+                )
+            except:
+                break
 
 if __name__ == '__main__':
     main()

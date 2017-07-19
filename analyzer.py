@@ -156,7 +156,7 @@ def read_whole_features(file_pattern, num_epochs=1):
     files = tf.gfile.Glob(file_pattern)
     filename_queue = tf.train.string_input_producer(files, num_epochs=num_epochs)
     reader = tf.WholeFileReader()
-    _, value = reader.read(filename_queue)
+    key, value = reader.read(filename_queue)
     value = tf.decode_raw(value, tf.float32)
     value = tf.reshape(value, [-1, FEAT_DIM])
     return {
@@ -165,6 +165,7 @@ def read_whole_features(file_pattern, num_epochs=1):
         'f0': value[:, SP_DIM * 2],
         'en': value[:, SP_DIM * 2 + 1],
         'speaker': tf.cast(value[:, SP_DIM * 2 + 2], tf.int64),
+        'filename': key,
     }
 
 
