@@ -35,7 +35,7 @@
 		"beta2": 0.999,
         "nIterD": 5,
         "lambda": 10,
-        "alpha": 1.0,
+        "alpha": 50.0,
 		"max_iter": 200000
 	}
 }

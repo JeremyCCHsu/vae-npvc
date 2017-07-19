@@ -7,10 +7,26 @@ import soundfile as sf
 
 from util.wrapper import load
 from analyzer import read_whole_features, SPEAKERS, pw2wav
-from model.vae import ConvVAE
+from model.vae import VAWGAN
 from analyzer import Tanhize
 # from util.image import gray2jet
 from datetime import datetime
+# import importlib
+from importlib import import_module
+
+args = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_string('checkpoint', None, 'root of log dir')
+tf.app.flags.DEFINE_string('src', 'SF1', 'source speaker [SF1 - SM2]')
+tf.app.flags.DEFINE_string('trg', 'TM3', 'target speaker [SF1 - TM3]')
+tf.app.flags.DEFINE_string('output_dir', './logdir', 'root of output dir')
+tf.app.flags.DEFINE_string('module', 'model.vae', 'Module')
+tf.app.flags.DEFINE_string('model', 'ConvVAE', 'Model')
+
+FS = 16000
+
+module = import_module(args.module, package=None)
+MODEL = eval('module.{}'.format(args.model))
+
 
 def get_default_output(logdir_root):
     STARTED_DATESTRING = datetime.now().strftime('%0m%0d-%0H%0M-%0S-%Y')
@@ -33,14 +49,6 @@ def nh_to_nchw(x):
         return tf.expand_dims(x, -1)  # => [b, c=1, h, w=1]
 
 
-args = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_string('checkpoint', None, 'root of log dir')
-tf.app.flags.DEFINE_string('src', 'SF1', 'source speaker [SF1 - SM2]')
-tf.app.flags.DEFINE_string('trg', 'TM3', 'target speaker [SF1 - TM3]')
-tf.app.flags.DEFINE_string('output', './logdir', 'root of output dir')
-
-FS = 16000
-
 def main():
     logdir, ckpt = os.path.split(args.checkpoint)
     arch = tf.gfile.Glob(os.path.join(logdir, 'architecture*.json'))[0]  # should only be 1 file
@@ -57,10 +65,10 @@ def main():
     x = normalizer.forward_process(features['sp'])
     x = nh_to_nchw(x)
     y_s = features['speaker']
-    y_t_id = tf.placeholder(dtype=tf.int64)
+    y_t_id = tf.placeholder(dtype=tf.int64, shape=[1,])
     y_t = y_t_id * tf.ones(shape=[tf.shape(x)[0],], dtype=tf.int64)
 
-    machine = ConvVAE(arch, is_training=True)
+    machine = MODEL(arch)
     z = machine.encode(x)
     x_t = machine.decode(z, y_t)  # NOTE: the API yields NHWC format
     x_t = tf.squeeze(x_t)
@@ -79,21 +87,30 @@ def main():
     output_dir = get_default_output(args.output_dir)
 
     saver = tf.train.Saver()
-    sv = tf.train.Supervisor()
+    sv = tf.train.Supervisor(logdir=output_dir)
     with sv.managed_session() as sess:
         load(saver, sess, logdir, ckpt=ckpt)
         while True:
             try:
+                # import pdb; pdb.set_trace()
                 feat, f0, sp = sess.run(
                     [features, f0_t, x_t],
-                    feed_dict={y_t_id: SPEAKERS.index(args.trg)}
+                    feed_dict={y_t_id: np.asarray([SPEAKERS.index(args.trg)])}
                 )
+                basename = str(feat['filename'], 'utf8')
+                basename = os.path.split(basename)[-1]
+                basename = os.path.splitext(basename)[0]
+                print('Processing {}'.format(basename))
                 feat['sp'] = sp
                 feat['f0'] = f0
                 y = pw2wav(feat)
+
+                
+
                 sf.write(
-                    os.path.join(output_dir, 
-                        '{}-{}.wav'.format(args.src, args.trg)
+                    os.path.join(
+                        output_dir, 
+                        '{}-{}-{}.wav'.format(args.src, args.trg, basename)
                     ),
                     y,
                     FS,

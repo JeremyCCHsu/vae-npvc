@@ -68,7 +68,7 @@ class GradientPenaltyWGAN(object):
         return y
 
 
-    def _generator(self, z, y, is_training):
+    def _generator(self, z, y, is_training=None):
         ''' Can be conditioned on `y` or not '''
         subnet = self.arch['generator']
         n_layer = len(subnet['output'])

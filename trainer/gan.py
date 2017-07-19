@@ -21,7 +21,7 @@ class GANTrainer(object):
             level=logging.INFO,
             filename=os.path.join(dirs['logdir'], 'training.log')
         )
-    
+
     def _optimize(self):
         '''
         NOTE: The author said that there was no need for 100 d_iter per 100 iters. 

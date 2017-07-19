@@ -166,12 +166,35 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
         self.generate = self.decode
 
 
-    with tf.name_scope('loss'):
-        def loss(self, x, y):
-            '''
-            Return:
-                `loss`: a `dict` for the trainer (keys must match)
-            '''
+    def _generator(self, z, y, is_training=None):
+        net = self.arch['generator']
+        h, w, c = net['hwc']
+
+        if y is not None:
+            y = tf.nn.embedding_lookup(self.y_emb, y)        
+            x = self._merge([z, y], h * w * c)
+        else:
+            x = z
+
+        x = tf.reshape(x, [-1, c, h, w])  # channel first
+        for i, (o, k, s) in enumerate(zip(net['output'], net['kernel'], net['stride'])):
+            x = tf.layers.conv2d_transpose(x, o, k, s,
+                padding='same',
+                data_format='channels_first',
+            )
+            if i < len(net['output']) -1:
+                x = Layernorm(x, [1, 2, 3], 'ConvT-LN{}'.format(i))
+                x = lrelu(x)
+        return x
+    
+
+    def loss(self, x, y):
+        '''
+        Return:
+            `loss`: a `dict` for the trainer (keys must match)
+        '''
+        with tf.name_scope('loss'):        
+
             z = self._generate_noise_with_shape(x)
             z_mu, z_lv = self._encode(x, is_training=self.is_training)
             z_enc = GaussianSampleLayer(z_mu, z_lv)
@@ -220,7 +243,8 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
                 loss['E_real'] = tf.reduce_mean(c_real)
                 loss['E_fake'] = tf.reduce_mean(c_fake)
                 loss['W_dist'] = loss['E_real'] - loss['E_fake']
-                loss['l_G'] = - loss['E_fake'] + (- logPx + D_KL)
+                a = self.arch['training']['alpha']
+                loss['l_G'] = - a * loss['E_fake'] + (- logPx + D_KL)
                 loss['D_KL'] = D_KL
                 loss['logP'] = logPx
                 loss['gp'] = gp
