@@ -9,9 +9,7 @@ from util.wrapper import load
 from analyzer import read_whole_features, SPEAKERS, pw2wav
 from model.vae import VAWGAN
 from analyzer import Tanhize
-# from util.image import gray2jet
 from datetime import datetime
-# import importlib
 from importlib import import_module
 
 args = tf.app.flags.FLAGS
@@ -21,12 +19,22 @@ tf.app.flags.DEFINE_string('trg', 'TM3', 'target speaker [SF1 - TM3]')
 tf.app.flags.DEFINE_string('output_dir', './logdir', 'root of output dir')
 tf.app.flags.DEFINE_string('module', 'model.vae', 'Module')
 tf.app.flags.DEFINE_string('model', 'ConvVAE', 'Model')
+tf.app.flags.DEFINE_string('file_pattern', './dataset/vcc2016/bin/Testing Set/{}/*.bin', 'file pattern')
 
 FS = 16000
 
 module = import_module(args.module, package=None)
 MODEL = eval('module.{}'.format(args.model))
 
+def make_output_wav_name(output_dir, filename):
+    basename = str(filename, 'utf8')
+    basename = os.path.split(basename)[-1]
+    basename = os.path.splitext(basename)[0]
+    print('Processing {}'.format(basename))        
+    return os.path.join(
+        output_dir, 
+        '{}-{}-{}.wav'.format(args.src, args.trg, basename)
+    )
 
 def get_default_output(logdir_root):
     STARTED_DATESTRING = datetime.now().strftime('%0m%0d-%0H%0M-%0S-%Y')
@@ -60,7 +68,7 @@ def main():
         xmin=np.fromfile('./etc/xmin.npf'),
     )
 
-    features = read_whole_features('./dataset/vcc2016/bin/Testing Set/{}/*.bin'.format(args.src))
+    features = read_whole_features(args.file_pattern.format(args.src))
 
     x = normalizer.forward_process(features['sp'])
     x = nh_to_nchw(x)
@@ -82,8 +90,6 @@ def main():
     f0_s = features['f0']
     f0_t = convert_f0(f0_s, args.src, args.trg)
 
-    # TODO: add file loop, src loop, trg loop
-
     output_dir = get_default_output(args.output_dir)
 
     saver = tf.train.Saver()
@@ -92,29 +98,14 @@ def main():
         load(saver, sess, logdir, ckpt=ckpt)
         while True:
             try:
-                # import pdb; pdb.set_trace()
                 feat, f0, sp = sess.run(
                     [features, f0_t, x_t],
                     feed_dict={y_t_id: np.asarray([SPEAKERS.index(args.trg)])}
                 )
-                basename = str(feat['filename'], 'utf8')
-                basename = os.path.split(basename)[-1]
-                basename = os.path.splitext(basename)[0]
-                print('Processing {}'.format(basename))
-                feat['sp'] = sp
-                feat['f0'] = f0
+                feat.update({'sp': sp, 'f0': f0})
                 y = pw2wav(feat)
-
-                
-
-                sf.write(
-                    os.path.join(
-                        output_dir, 
-                        '{}-{}-{}.wav'.format(args.src, args.trg, basename)
-                    ),
-                    y,
-                    FS,
-                )
+                oFilename = make_output_wav_name(output_dir, feat['filename'])
+                sf.write(oFilename, y, FS)
             except:
                 break
 

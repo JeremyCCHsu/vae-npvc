@@ -24,17 +24,23 @@ tf.app.flags.DEFINE_string(
 tf.app.flags.DEFINE_string(
     'architecture', 'architecture-vawgan-vcc2016.json', 'network architecture')
 
-tf.app.flags.DEFINE_string('model_module', 'model.vae', 'Module')
-tf.app.flags.DEFINE_string('model', 'ConvVAE', 'Model: ConvVAE, VAWGAN')
+tf.app.flags.DEFINE_string('model_module', 'model.vae', 'Model module')
+tf.app.flags.DEFINE_string('model', None, 'Model: ConvVAE, VAWGAN')
 
-tf.app.flags.DEFINE_string('trainer_module', 'trainer.vae')
-tf.app.flags.DEFINE_string('trainer', 'VAWGANTrainer', 'Trainer: VAETrainer, VAWGANTrainer')
+tf.app.flags.DEFINE_string('trainer_module', 'trainer.vae', 'Trainer module')
+tf.app.flags.DEFINE_string('trainer', None, 'Trainer: VAETrainer, VAWGANTrainer')
+
+if args.model is None or args.trainer is None:
+    raise ValueError(
+        '\n  Both `model` and `trainer` should be assigned.' +\
+        '\n  Use `python main.py --help` to see applicable options.'
+    )
 
 module = import_module(args.model_module, package=None)
-MODEL = eval('module.{}'.format(args.model))
+MODEL = getattr(module, args.model)
 
 module = import_module(args.trainer_module, package=None)
-TRAINER = eval('module.{}'.format(args.trainer))
+TRAINER = getattr(module, args.trainer)
 
 def main():
     ''' NOTE: The input is rescaled to [-1, 1] '''
