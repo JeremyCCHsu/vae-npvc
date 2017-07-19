@@ -1,9 +1,9 @@
 {
+	"mode": "VAWGAN",    
 	"hwc": [513, 1, 1],
 	"z_dim": 128,
 	"y_dim": 10,
 	"y_emb_dim": 128,
-	"mode": "VAWGAN",
 	"discriminator": {
         "merge_dim": 1024,
 		"kernel": [[7, 1], [7, 1], [115, 1]],
@@ -35,6 +35,7 @@
 		"beta2": 0.999,
         "nIterD": 5,
         "lambda": 10,
+        "alpha": 1.0,
 		"max_iter": 200000
 	}
 }

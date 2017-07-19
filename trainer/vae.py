@@ -161,6 +161,8 @@ class VAWGANTrainer(GANTrainer):
         fetches = {
             "D_KL": self.loss['D_KL'],
             "logP": self.loss['logP'],
+            "W_dist": self.loss['W_dist'],
+            "gp": self.loss['gp'],            
             "step": self.opt['global_step'],
         }
         result = sess.run(
@@ -175,7 +177,9 @@ class VAWGANTrainer(GANTrainer):
 
         # Message
         msg = 'Iter {:05d}: '.format(result['step'])
-        msg += 'log P(x|z, y) = {:.3e} '.format(result['logP'])
-        msg += 'D_KL(z) = {:.3e} '.format(result['D_KL'])
+        msg += 'W_dist = {:.4e} '.format(result['W_dist'])        
+        msg += 'log P(x|z, y) = {:.4e} '.format(result['logP'])
+        msg += 'D_KL(z) = {:.4e} '.format(result['D_KL'])
+        msg += 'GP = {:.4e} '.format(result['gp'])
         print('\r{}'.format(msg), end='', flush=True)
         logging.info(msg)

@@ -165,19 +165,6 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
 
         self.generate = self.decode
 
-    
-    # def _encoder(self, x, is_training=None):
-    #     net = self.arch['encoder']
-    #     for i, (o, k, s) in enumerate(zip(net['output'], net['kernel'], net['stride'])):
-    #         x = conv2d_nchw_layernorm(
-    #             x, o, k, s, lrelu,
-    #             name='Conv2d-{}'.format(i)
-    #         )
-    #     x = slim.flatten(x)
-    #     z_mu = tf.layers.dense(x, self.arch['z_dim'])
-    #     z_lv = tf.layers.dense(x, self.arch['z_dim'])
-    #     return z_mu, z_lv
-        
 
     with tf.name_scope('loss'):
         def loss(self, x, y):
@@ -234,6 +221,8 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
                 loss['E_fake'] = tf.reduce_mean(c_fake)
                 loss['W_dist'] = loss['E_real'] - loss['E_fake']
                 loss['l_G'] = - loss['E_fake'] + (- logPx + D_KL)
+                loss['D_KL'] = D_KL
+                loss['logP'] = logPx
 
                 lam = self.arch['training']['lambda']                
                 loss['l_D'] = - loss['W_dist'] + lam * gp
