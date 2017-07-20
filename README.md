@@ -21,10 +21,11 @@ Note: `soundfile` might require `sudo apt-get install`
 
 
 # Dataset
-Voice Conversion Challenge 2016 (VCC2016)  
-Download: http://datashare.is.ed.ac.uk/handle/10283/2042
-Download all files
-
+Voice Conversion Challenge 2016 (VCC2016): [download page](http://datashare.is.ed.ac.uk/handle/10283/2042)
+You can also download all the files by 
+```bash
+bash ./download.sh
+```
 
 # Model
 1. Conditional VAE
@@ -32,10 +33,11 @@ Download all files
 
 
 # File/Folder
+```
 dataset
   vcc2016
-    wav
     bin
+    wav
       Training Set
       Testing Set
         SF1
@@ -53,22 +55,36 @@ architecture*.json
 analyzer.py  
 build.py  
 trainer*.py
-vcc2016_vae.py  
+main.py  
 (validate.py)  
 convert.py
-
+```
 
 # Usage
 1. Run `analyzer.py` to extract features and write features into binary files.  
 2. Run `build.py` to record some stats, such as spectral extrema and pitch
+3. Run `python main.py --model ConvVAE --trainer VAETrainer` to train a VAE.
+4. Run  
+```bash
+python convert.py 
+--checkpoint logdir/train/0719-2303-34-2017/model.ckpt-197324 
+--src SF1 
+--trg TM3 
+--file_pattern ./dataset/vcc2016/bin/Testing Set/{}/*001.bin
+``` 
+to convert
 
-
-TODO:
-Delete unnecessary files.
-
+# Modification Tips
+1. Define a new model (and an accompanying trainer) and then specify the `--model` and `--trainer` of `main.py`.  
+2. Tip: when creating a new trainer, overwrite `_optimize()` and the main loop in `train()`.
 
 
 # Discrepancy
 1. In the original paper, I used the STRAIGHT vocoder (which is not open-sourced).  
    However, in order to release this repo so that things can be reproduced,  
    I adopted the WORLD vocoder in this repo.
+2. Global variance post-filtering was not included in this repo.
+
+
+## TODO:
+- [x] Delete unnecessary files.
