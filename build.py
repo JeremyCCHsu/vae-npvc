@@ -6,6 +6,8 @@ from analyzer import SPEAKERS, pw2wav, read, read_whole_features
 
 
 def main():
+    tf.gfile.MkDir('./etc')
+
     # ==== Save max and min value ====
     x = read_whole_features('./dataset/vcc2016/bin/*/*/100*.bin')
     x_all = list()

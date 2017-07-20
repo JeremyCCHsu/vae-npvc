@@ -9,8 +9,13 @@ from os.path import join
 EPSILON = 1e-10
 SPEAKERS = ['SF1', 'SF2', 'SF3', 'SM1', 'SM2',
             'TF1', 'TF2', 'TM1', 'TM2', 'TM3']
+FFT_SIZE = 1024
+SP_DIM = FFT_SIZE // 2 + 1
+FEAT_DIM = SP_DIM + SP_DIM + 1 + 1 + 1  # [sp, ap, f0, en, s]
+RECORD_BYTES = FEAT_DIM * 4  # all features saved in `float32`
 
-def wav2pw(x, fs=16000, fft_size=1024):
+
+def wav2pw(x, fs=16000, fft_size=FFT_SIZE):
     ''' Extract WORLD feature from waveform '''
     _f0, t = pw.dio(x, fs)            # raw pitch extractor
     f0 = pw.stonemask(x, _f0, t, fs)  # pitch refinement
@@ -23,7 +28,7 @@ def wav2pw(x, fs=16000, fft_size=1024):
     }
 
 
-def extract(filename, fft_size=1024, dtype=np.float32):
+def extract(filename, fft_size=FFT_SIZE, dtype=np.float32):
     ''' Basic (WORLD) feature extraction ''' 
     x, fs = sf.read(filename)
     features = wav2pw(x, fs, fft_size=fft_size)
@@ -56,16 +61,9 @@ def extract_and_save_bin_to(dir_to_bin, dir_to_source):
                     with open(join(output_dir, '{}.bin'.format(b)), 'wb') as fp:
                         fp.write(features.tostring())
 
-# 
-
-
-SP_DIM = 513
-FEAT_DIM = SP_DIM * 2 + 2 + 1
-RECORD_BYTES = FEAT_DIM * 4  # [sp, ap, f0, en, s] in float32
-
-
 
 class Tanhize(object):
+    ''' Normalizing `x` to [-1, 1] '''
     def __init__(self, xmin, xmax):
         self.xmin = xmin
         self.xmax = xmax
@@ -125,27 +123,6 @@ def read(
             num_threads=num_threads,
             # enqueue_many=True,
         )
-
-
-
-# def read_whole(file_pattern, num_epochs=1):
-#     '''
-#     Return
-#         `feature`: SP feature, [None, SP_DIM]
-#         `label`: [None,]
-#     '''
-#     files = tf.gfile.Glob(file_pattern)
-#     filename_queue = tf.train.string_input_producer(
-#         files, num_epochs=num_epochs)
-
-#     reader = tf.WholeFileReader()
-#     _, value = reader.read(filename_queue)
-#     value = tf.decode_raw(value, tf.float32)
-#     value = tf.reshape(value, [-1, FEAT_DIM])
-
-#     feature = value[:, :SP_DIM]
-#     label = tf.cast(value[:, -1], tf.int64)
-#     return feature, label
 
 
 def read_whole_features(file_pattern, num_epochs=1):

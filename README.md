@@ -1,3 +1,5 @@
+A modified version of our
+
 # Papers
 1. [Voice Conversion from Non-parallel Corpora Using Variational Auto-encoder](https://arxiv.org/abs/1610.04019)  
 2. [Voice Conversion from Unaligned Corpora using Variational Autoencoding Wasserstein Generative Adversarial Networks](https://arxiv.org/abs/1704.00849)
@@ -52,12 +54,12 @@ model
 logdir
 architecture*.json
 
-analyzer.py  
-build.py  
+analyzer.py    (feature extraction)
+build.py       (stats collecting)
 trainer*.py
-main.py  
-(validate.py)  
-convert.py
+main.py        (main script)
+(validate.py)  (output converted spectrogram) 
+convert.py     (conversion)
 ```
 
 # Usage
