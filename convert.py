@@ -18,13 +18,20 @@ tf.app.flags.DEFINE_string('src', 'SF1', 'source speaker [SF1 - SM2]')
 tf.app.flags.DEFINE_string('trg', 'TM3', 'target speaker [SF1 - TM3]')
 tf.app.flags.DEFINE_string('output_dir', './logdir', 'root of output dir')
 tf.app.flags.DEFINE_string('module', 'model.vae', 'Module')
-tf.app.flags.DEFINE_string('model', 'ConvVAE', 'Model')
+tf.app.flags.DEFINE_string('model', None, 'Model')
 tf.app.flags.DEFINE_string('file_pattern', './dataset/vcc2016/bin/Testing Set/{}/*.bin', 'file pattern')
+
+if args.model is None or args.trainer is None:
+    raise ValueError(
+        '\n  You MUST specify `model`.' +\
+        '\n    Use `python convert.py --help` to see applicable options.'
+    )
+
+module = import_module(args.module, package=None)
+MODEL = getattr(module, args.model)
 
 FS = 16000
 
-module = import_module(args.module, package=None)
-MODEL = eval('module.{}'.format(args.model))
 
 def make_output_wav_name(output_dir, filename):
     basename = str(filename, 'utf8')

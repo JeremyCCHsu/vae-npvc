@@ -61,9 +61,10 @@ python main.py \
 5. To convert the voice, run
 ```bash
 python convert.py \
---checkpoint logdir/train/0719-2303-34-2017/model.ckpt-197324 \
 --src SF1 \
 --trg TM3 \
+--model ConvVAE \
+--checkpoint logdir/train/0719-2303-34-2017/model.ckpt-197324 \
 --file_pattern "./dataset/vcc2016/bin/Testing Set/{}/*.bin"
 ```
 <br/>
@@ -139,3 +140,9 @@ Note:
 # About
 The original code base was originally built in March, 2016.  
 Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and put it on this repo.
+
+
+# TODO
+ - [ ] util submodule (add to README)
+ - [ ] license
+ - [ ] Github
