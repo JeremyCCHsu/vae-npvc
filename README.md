@@ -64,7 +64,7 @@ python convert.py \
 --src SF1 \
 --trg TM3 \
 --model ConvVAE \
---checkpoint logdir/train/0719-2303-34-2017/model.ckpt-197324 \
+--checkpoint logdir/train/0719-2303-34-2017/[model.ckpt-[id]] \
 --file_pattern "./dataset/vcc2016/bin/Testing Set/{}/*.bin"
 ```
 <br/>
@@ -144,5 +144,6 @@ Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and 
 
 # TODO
  - [ ] util submodule (add to README)
+ - [ ] Code architecture graph (UML)
  - [ ] license
  - [ ] Github

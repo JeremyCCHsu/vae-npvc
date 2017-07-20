@@ -21,7 +21,7 @@ tf.app.flags.DEFINE_string('module', 'model.vae', 'Module')
 tf.app.flags.DEFINE_string('model', None, 'Model')
 tf.app.flags.DEFINE_string('file_pattern', './dataset/vcc2016/bin/Testing Set/{}/*.bin', 'file pattern')
 
-if args.model is None or args.trainer is None:
+if args.model is None:
     raise ValueError(
         '\n  You MUST specify `model`.' +\
         '\n    Use `python convert.py --help` to see applicable options.'

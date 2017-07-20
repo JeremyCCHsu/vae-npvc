@@ -9,7 +9,7 @@ from trainer.gan import GANTrainer
 class VAETrainer(GANTrainer):
     def _optimize(self):
         '''
-        NOTE: The author said that there was no need for 100 d_iter per 100 iters. 
+        NOTE: The author said that there was no need for 100 d_iter per 100 iters.
               https://github.com/igul222/improved_wgan_training/issues/3
         '''
         global_step = tf.Variable(0, name='global_step')
@@ -20,7 +20,7 @@ class VAETrainer(GANTrainer):
 
         g_vars = tf.trainable_variables()
 
-        with tf.name_scope('Update'):        
+        with tf.name_scope('Update'):
             opt_g = optimizer.minimize(self.loss['G'], var_list=g_vars, global_step=global_step)
         return {
             'g': opt_g,
@@ -54,14 +54,14 @@ class VAETrainer(GANTrainer):
 
     # def _validate(self, machine, n=10):
     #     N = n * n
-        
+
     #     # same row same z
     #     z = tf.random_normal(shape=[n, self.arch['z_dim']])
     #     z = tf.tile(z, [1, n])
     #     z = tf.reshape(z, [N, -1])
-    #     z = tf.Variable(z, trainable=False, dtype=tf.float32)       
+    #     z = tf.Variable(z, trainable=False, dtype=tf.float32)
 
-    #     # same column same y 
+    #     # same column same y
     #     y = tf.range(0, 10, 1, dtype=tf.int64)
     #     y = tf.reshape(y, [-1,])
     #     y = tf.tile(y, [n,])
@@ -98,7 +98,7 @@ class VAETrainer(GANTrainer):
                 # main loop
                 sess.run(self.opt['g'])
 
-                # # output img                
+                # # output img
                 # if step % 1000 == 0:
                 #     xh = sess.run(Xh)
                 #     with tf.gfile.GFile(
@@ -113,6 +113,39 @@ class VAETrainer(GANTrainer):
 
 
 class VAWGANTrainer(GANTrainer):
+    def _optimize(self):
+        '''
+        NOTE: The author said that there was no need for 100 d_iter per 100 iters.
+              https://github.com/igul222/improved_wgan_training/issues/3
+        '''
+        global_step = tf.Variable(0, name='global_step')
+        lr = self.arch['training']['lr']
+        b1 = self.arch['training']['beta1']
+        b2 = self.arch['training']['beta2']
+
+        optimizer = tf.train.AdamOptimizer(lr, b1, b2)
+
+        trainables = tf.trainable_variables()
+        g_vars = [v for v in trainables if 'Generator' in v.name or 'y_emb' in v.name]
+        d_vars = [v for v in trainables if 'Discriminator' in v.name]
+        e_vars = [v for v in trainables if 'Encoder' in v.name]
+
+        # # Debug ===============
+        # debug(['Generator', 'Discriminator'], [g_vars, d_vars])
+        # # ============================
+
+        with tf.name_scope('Update'):
+            opt_d = optimizer.minimize(self.loss['l_D'], var_list=d_vars)
+            opt_e = optimizer.minimize(self.loss['l_E'], var_list=e_vars)
+            with tf.control_dependencies([opt_e]):
+                opt_g = optimizer.minimize(self.loss['l_G'], var_list=g_vars, global_step=global_step)
+        return {
+            'd': opt_d,
+            'g': opt_g,
+            'e': opt_e,
+            'global_step': global_step
+        }
+
     def train(self, nIter, machine=None, summary_op=None):
         # Xh = self._validate(machine=machine, n=10)
 
@@ -145,7 +178,7 @@ class VAWGANTrainer(GANTrainer):
                     sess.run(self.opt['d'])
                 sess.run(self.opt['g'])
 
-                # # output img                
+                # # output img
                 # if step % 1000 == 0:
                 #     xh = sess.run(Xh)
                 #     with tf.gfile.GFile(
@@ -162,7 +195,7 @@ class VAWGANTrainer(GANTrainer):
             "D_KL": self.loss['D_KL'],
             "logP": self.loss['logP'],
             "W_dist": self.loss['W_dist'],
-            "gp": self.loss['gp'],            
+            "gp": self.loss['gp'],
             "step": self.opt['global_step'],
         }
         result = sess.run(
@@ -177,7 +210,7 @@ class VAWGANTrainer(GANTrainer):
 
         # Message
         msg = 'Iter {:05d}: '.format(result['step'])
-        msg += 'W_dist = {:.4e} '.format(result['W_dist'])        
+        msg += 'W_dist = {:.4e} '.format(result['W_dist'])
         msg += 'log P(x|z, y) = {:.4e} '.format(result['logP'])
         msg += 'D_KL(z) = {:.4e} '.format(result['D_KL'])
         msg += 'GP = {:.4e} '.format(result['gp'])

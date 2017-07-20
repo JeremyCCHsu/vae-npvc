@@ -8,16 +8,16 @@ from model.wgan import GradientPenaltyWGAN
 class ConvVAE(object):
     def __init__(self, arch, is_training=False):
         '''
-        Variational auto-encoder implemented in 2D convolutional neural nets  
+        Variational auto-encoder implemented in 2D convolutional neural nets
         Input:
-            `arch`: network architecture (`dict`)  
-            `is_training`: (unused now) it was kept for historical reasons (for `BatchNorm`)  
+            `arch`: network architecture (`dict`)
+            `is_training`: (unused now) it was kept for historical reasons (for `BatchNorm`)
         '''
         self.arch = arch
         self._sanity_check()
         self.is_training = is_training
 
-        with tf.name_scope('SpeakerRepr'):        
+        with tf.name_scope('SpeakerRepr'):
             self.y_emb = self._l2_regularized_embedding(
                 self.arch['y_dim'],
                 self.arch['z_dim'],
@@ -80,13 +80,13 @@ class ConvVAE(object):
         z_mu = tf.layers.dense(x, self.arch['z_dim'])
         z_lv = tf.layers.dense(x, self.arch['z_dim'])
         return z_mu, z_lv
-        
+
     def _generator(self, z, y, is_training=None):
         net = self.arch['generator']
         h, w, c = net['hwc']
 
         if y is not None:
-            y = tf.nn.embedding_lookup(self.y_emb, y)        
+            y = tf.nn.embedding_lookup(self.y_emb, y)
             x = self._merge([z, y], h * w * c)
         else:
             x = z
@@ -152,7 +152,7 @@ class VAWGAN(GradientPenaltyWGAN):
         self._sanity_check()
         self.is_training = is_training
 
-        with tf.name_scope('SpeakerRepr'):        
+        with tf.name_scope('SpeakerRepr'):
             self.y_emb = self._l2_regularized_embedding(
                 self.arch['y_dim'],
                 self.arch['z_dim'],
@@ -194,7 +194,7 @@ class VAWGAN(GradientPenaltyWGAN):
         h, w, c = net['hwc']
 
         if y is not None:
-            y = tf.nn.embedding_lookup(self.y_emb, y)        
+            y = tf.nn.embedding_lookup(self.y_emb, y)
             x = self._merge([z, y], h * w * c)
         else:
             x = z
@@ -209,7 +209,7 @@ class VAWGAN(GradientPenaltyWGAN):
                 x = Layernorm(x, [1, 2, 3], 'ConvT-LN{}'.format(i))
                 x = lrelu(x)
         return x
-    
+
 
     def loss(self, x, y):
         '''
@@ -223,7 +223,7 @@ class VAWGAN(GradientPenaltyWGAN):
             z = GaussianSampleLayer(z_mu, z_lv)
 
             # z_all = tf.concat([z_enc, z], 0)
-            # y_all = tf.concat([y, y], 0) if y is not None else None       
+            # y_all = tf.concat([y, y], 0) if y is not None else None
             # x_ = self._generate(z_all, y_all, is_training=self.is_training)
             # xh, x_fake = tf.split(x_, 2)
             xh = self._generate(z, y)
@@ -275,19 +275,21 @@ class VAWGAN(GradientPenaltyWGAN):
                 loss['E_fake'] = tf.reduce_mean(c_fake)
                 loss['W_dist'] = loss['E_real'] - loss['E_fake']
                 a = self.arch['training']['alpha']
-                loss['l_G'] = - a * loss['E_fake'] + (- logPx + D_KL)
                 loss['D_KL'] = D_KL
                 loss['logP'] = logPx
-                loss['gp'] = gp
+                loss['l_E'] = - logPx + D_KL
+                loss['l_G'] = - a * loss['E_fake'] + loss['l_E']
 
-                lam = self.arch['training']['lambda']                
+                lam = self.arch['training']['lambda']
+                loss['gp'] = gp
                 loss['l_D'] = - loss['W_dist'] + lam * gp + l_mean
 
                 tf.summary.scalar('W_dist', loss['W_dist'])
                 tf.summary.scalar('gp', gp)
                 tf.summary.scalar('l_G', loss['l_G'] )
-                tf.summary.scalar('l_D', loss['l_D'])                
-                
+                tf.summary.scalar('l_D', loss['l_D'])
+                tf.summary.scalar('l_E', loss['l_E'])
+
                 tf.summary.scalar('KL-div', D_KL)
                 tf.summary.scalar('logPx', logPx)
 
