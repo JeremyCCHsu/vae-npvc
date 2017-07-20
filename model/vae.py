@@ -33,11 +33,10 @@ class ConvVAE(object):
 
         self.generate = self.decode  # for VAE-GAN extension
 
+
     def _sanity_check(self):
         for net in ['encoder', 'generator']:
-            # assert len(self.arch[net]['output']) > 2
             assert len(self.arch[net]['output']) == len(self.arch[net]['kernel']) == len(self.arch[net]['stride'])
-            # assert len(self.arch[net]['output']) == len(self.arch[net]['stride'])
 
 
     def _unit_embedding(self, n_class, h_dim, scope_name, var_name='y_emb'):

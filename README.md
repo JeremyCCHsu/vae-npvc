@@ -17,6 +17,7 @@ Python 3.5
 
 
 # Setting up the environment
+For example,  
 ```bash
 conda create -n py35tf121 -y python=3.5
 source activate py35tf121
@@ -63,7 +64,7 @@ python convert.py \
 --checkpoint logdir/train/0719-2303-34-2017/model.ckpt-197324 \
 --src SF1 \
 --trg TM3 \
---file_pattern ./dataset/vcc2016/bin/Testing Set/{}/*001.bin
+--file_pattern "./dataset/vcc2016/bin/Testing Set/{}/*.bin"
 ```
 <br/>
 
@@ -132,7 +133,9 @@ Note:
 1. WORLD vocoder is chosen in this repo over STRAIGHT because the former is open-sourced whereas the latter isn't.  
    I use [pyworld](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder), Python wrapper of the WORLD, in this repo.
 2. Global variance post-filtering was not included in this repo.
+<br/>
 
 
-## TODO:
-- [x] Delete unnecessary files.
+# About
+The original code base was originally built in March, 2016.  
+Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and put it on this repo.
