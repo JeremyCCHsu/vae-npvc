@@ -27,7 +27,7 @@
 		"l2-reg": 1e-6
     },
 	"training": {
-        "datadir": "./dataset/vcc2016/bin/*/*/100*.bin",
+        "datadir": ["./dataset/vcc2016/bin/*/SF1/100*.bin", "./dataset/vcc2016/bin/*/TM3/100*.bin"],
 		"batch_size": 16,
 		"epoch": 200,
 		"lr": 1e-4,

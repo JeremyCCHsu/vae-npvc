@@ -65,26 +65,30 @@ convert.py     (conversion)
 # Usage
 1. Run `analyzer.py` to extract features and write features into binary files.  
 2. Run `build.py` to record some stats, such as spectral extrema and pitch
-3. Run `python main.py --model ConvVAE --trainer VAETrainer` to train a VAE.
-4. Run  
+3. To train a VAE, for example, run
+```bash
+python main.py 
+--model ConvVAE 
+--trainer VAETrainer
+--architecture architecture-vae-vcc2016.json
+```  
+4. To convert the voice, run
 ```bash
 python convert.py 
 --checkpoint logdir/train/0719-2303-34-2017/model.ckpt-197324 
 --src SF1 
 --trg TM3 
 --file_pattern ./dataset/vcc2016/bin/Testing Set/{}/*001.bin
-``` 
-to convert
+```
+
 
 # Modification Tips
 1. Define a new model (and an accompanying trainer) and then specify the `--model` and `--trainer` of `main.py`.  
 2. Tip: when creating a new trainer, overwrite `_optimize()` and the main loop in `train()`.
 
 
-# Discrepancy
-1. In the original paper, I used the STRAIGHT vocoder (which is not open-sourced).  
-   However, in order to release this repo so that things can be reproduced,  
-   I adopted the WORLD vocoder in this repo.
+# Difference from the original paper
+1. WORLD vocoder is chosen in this repo over STRAIGHT because the former is open-sourced whereas the latter isn't.
 2. Global variance post-filtering was not included in this repo.
 
 

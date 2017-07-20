@@ -146,7 +146,7 @@ class ConvVAE(object):
         return nchw_to_nhwc(xh)
 
 
-class VAWGAN(GradientPenaltyWGAN, ConvVAE):
+class VAWGAN(GradientPenaltyWGAN):
     ''' Conditional on `y` '''
     def __init__(self, arch, is_training=False):
         self.arch = arch
@@ -164,6 +164,30 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
         self._discriminate = tf.make_template('Discriminator', self._discriminator)
 
         self.generate = self.decode
+
+    def _merge(self, var_list, fan_out, l2_reg=1e-6):
+        x = 0.
+        with slim.arg_scope(
+            [slim.fully_connected],
+            num_outputs=fan_out,
+            weights_regularizer=slim.l2_regularizer(l2_reg),
+            normalizer_fn=None,
+            activation_fn=None):
+            for var in var_list:
+                x = x + slim.fully_connected(var)
+        return slim.bias_add(x)
+
+    def _encoder(self, x, is_training=None):
+        net = self.arch['encoder']
+        for i, (o, k, s) in enumerate(zip(net['output'], net['kernel'], net['stride'])):
+            x = conv2d_nchw_layernorm(
+                x, o, k, s, lrelu,
+                name='Conv2d-{}'.format(i)
+            )
+        x = slim.flatten(x)
+        z_mu = tf.layers.dense(x, self.arch['z_dim'])
+        z_lv = tf.layers.dense(x, self.arch['z_dim'])
+        return z_mu, z_lv
 
 
     def _generator(self, z, y, is_training=None):
@@ -193,34 +217,42 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
         Return:
             `loss`: a `dict` for the trainer (keys must match)
         '''
-        with tf.name_scope('loss'):        
-
-            z = self._generate_noise_with_shape(x)
+        with tf.name_scope('loss'):
+            # z = self._generate_noise_with_shape(x)
             z_mu, z_lv = self._encode(x, is_training=self.is_training)
-            z_enc = GaussianSampleLayer(z_mu, z_lv)
+            # z_enc = GaussianSampleLayer(z_mu, z_lv)
+            z = GaussianSampleLayer(z_mu, z_lv)
 
-            z_all = tf.concat([z_enc, z], 0)
-            y_all = tf.concat([y, y], 0) if y is not None else None       
-            x_ = self._generate(z_all, y_all, is_training=self.is_training)
+            # z_all = tf.concat([z_enc, z], 0)
+            # y_all = tf.concat([y, y], 0) if y is not None else None       
+            # x_ = self._generate(z_all, y_all, is_training=self.is_training)
+            # xh, x_fake = tf.split(x_, 2)
+            xh = self._generate(z, y)
 
-            xh, x_fake = tf.split(x_, 2)
-
-            x_real = x
-
+            x_real, x_fake = x, xh
             x_all = tf.concat([x_real, x_fake], 0)
 
             e = tf.random_uniform([tf.shape(x)[0], 1, 1, 1], 0., 1., name='epsilon')
             x_intp = x_real + e * (x_fake - x_real)   # HINT: (1 - a)*A + a*B = A + a(B - A)
 
-            x_all = tf.concat([x_all, x_intp], axis=0)
-            y_all = tf.concat([y_all, y], axis=0)
+            # x_all = tf.concat([x_all, x_intp], axis=0)
+            # y_all = tf.concat([y_all, y], axis=0)
+            x_all = tf.concat([x_real, x_fake, x_intp], axis=0)
+            y_all = tf.concat([y, y, y], axis=0)
 
             c_ = self._discriminate(x=x_all, y=y_all)
             c_real, c_fake, c_intp = tf.split(c_, 3)
 
             with tf.name_scope('loss'):
                 gp = self._compute_gradient_penalty(c_intp, x_intp)
-                
+                l_mean = -1. * tf.reduce_mean(
+                    GaussianLogDensity(
+                        x=c_real,
+                        mu=tf.zeros_like(c_real),
+                        log_var=tf.zeros_like(c_real),
+                    )
+                )
+
                 # VAE loss
                 D_KL = tf.reduce_mean(
                     GaussianKLD(
@@ -250,7 +282,7 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
                 loss['gp'] = gp
 
                 lam = self.arch['training']['lambda']                
-                loss['l_D'] = - loss['W_dist'] + lam * gp
+                loss['l_D'] = - loss['W_dist'] + lam * gp + l_mean
 
                 tf.summary.scalar('W_dist', loss['W_dist'])
                 tf.summary.scalar('gp', gp)
@@ -265,3 +297,10 @@ class VAWGAN(GradientPenaltyWGAN, ConvVAE):
 
             return loss
 
+    def encode(self, x):
+        z_mu, _ = self._encode(x)
+        return z_mu
+
+    def decode(self, z, y):
+        xh = self._generate(z, y)
+        return nchw_to_nhwc(xh)
