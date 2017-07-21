@@ -5,11 +5,18 @@ import tensorflow as tf
 from analyzer import SPEAKERS, pw2wav, read, read_whole_features
 
 
+args = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_string(
+    'train_file_pattern',
+    "./dataset/vcc2016/bin/Training Set/*/*.bin",
+    'training dir (to *.bin)')
+
+
 def main():
     tf.gfile.MkDir('./etc')
 
     # ==== Save max and min value ====
-    x = read_whole_features('./dataset/vcc2016/bin/*/*/100*.bin')
+    x = read_whole_features(args.train_dir)
     x_all = list()
     y_all = list()
     f0_all = list()

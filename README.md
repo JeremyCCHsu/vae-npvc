@@ -127,6 +127,10 @@ Note:
 # Modification Tips
 1. Define a new model (and an accompanying trainer) and then specify the `--model` and `--trainer` of `main.py`.  
 2. Tip: when creating a new trainer, overwrite `_optimize()` and the main loop in `train()`.
+3. Code orgainzation
+
+<img src="etc/CodeOrganizaion.png" /> 
+<!-- ![Code organization](./etc/Code Organizaion.png) -->
 
 <br/>
 
@@ -134,6 +138,7 @@ Note:
 1. WORLD vocoder is chosen in this repo over STRAIGHT because the former is open-sourced whereas the latter isn't.  
    I use [pyworld](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder), Python wrapper of the WORLD, in this repo.
 2. Global variance post-filtering was not included in this repo.
+3. In our VAE-NPVC paper, we didn't apply the [-1, 1] normalization; we did in our VAWGAN-NPVC paper.
 <br/>
 
 
@@ -143,7 +148,9 @@ Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and 
 
 
 # TODO
- - [ ] util submodule (add to README)
+ - [ ] `util` submodule (add to README)
  - [ ] Code architecture graph (UML)
  - [ ] license
  - [ ] Github
+ - [ ] GV
+ - [ ] logdir output/train

@@ -6,6 +6,12 @@ import os
 
 from os.path import join
 
+
+args = tf.app.flags.FLAGS
+tf.app.flags.DEFINE_string('checkpoint', None, 'root of log dir')
+tf.app.flags.DEFINE_string('dir_to_wav', None, 'Dir to *.wav')
+tf.app.flags.DEFINE_string('dir_to_bin', None, 'Dir to output *.bin')
+
 EPSILON = 1e-10
 SPEAKERS = ['SF1', 'SF2', 'SF3', 'SM1', 'SM2',
             'TF1', 'TF2', 'TM1', 'TM2', 'TM3']
@@ -176,6 +182,8 @@ def pw2wav(features, feat_dim=513, fs=16000):
 
 if __name__ == '__main__':
     extract_and_save_bin_to(
-        './dataset/vcc2016/bin',
-        './dataset/vcc2016/wav',
+        args.dir_to_bin,
+        args.dir_to_wav,
+        # './dataset/vcc2016/bin',
+        # './dataset/vcc2016/wav',
     )
