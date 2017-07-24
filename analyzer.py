@@ -5,11 +5,12 @@ import numpy as np
 import os
 
 from os.path import join
-
+from librosa.core import resample
 
 args = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('dir_to_wav', None, 'Dir to *.wav')
 tf.app.flags.DEFINE_string('dir_to_bin', None, 'Dir to output *.bin')
+tf.app.flags.DEFINE_integer('fs', 16000, 'Global sampling frequency')
 
 EPSILON = 1e-10
 SPEAKERS = ['SF1', 'SF2', 'SF3', 'SM1', 'SM2',
@@ -37,6 +38,8 @@ def extract(filename, fft_size=FFT_SIZE, dtype=np.float32):
     ''' Basic (WORLD) feature extraction ''' 
     x, fs = sf.read(filename, always_2d=True)
     x = x.mean(1)  # to ensure that we can deal with stereo audios
+    if fs != args.fs:
+        x = resample(x, fs, args.fs)
     features = wav2pw(x, fs, fft_size=fft_size)
     ap = features['ap']
     f0 = features['f0'].reshape([-1, 1])

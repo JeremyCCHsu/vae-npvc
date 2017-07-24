@@ -41,7 +41,6 @@ def main():
 
 
     # ==== F0 stats ====
-    import pdb; pdb.set_trace()
     for s in SPEAKERS:
         print('Speaker {}'.format(s), flush=True)
         f0 = f0_all[SPEAKERS.index(s) == y_all]
@@ -88,7 +87,7 @@ def test():
         features = sess.run(features)
 
     y = pw2wav(features)
-    sf.write('test1.wav', y, 16000)
+    sf.write('test1.wav', y, 16000)  # TODO fs should be specified externally.
 
 
     # ==== Direct read =====
