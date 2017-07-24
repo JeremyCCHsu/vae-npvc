@@ -8,7 +8,6 @@ from os.path import join
 
 
 args = tf.app.flags.FLAGS
-tf.app.flags.DEFINE_string('checkpoint', None, 'root of log dir')
 tf.app.flags.DEFINE_string('dir_to_wav', None, 'Dir to *.wav')
 tf.app.flags.DEFINE_string('dir_to_bin', None, 'Dir to output *.bin')
 
@@ -26,7 +25,7 @@ def wav2pw(x, fs=16000, fft_size=FFT_SIZE):
     _f0, t = pw.dio(x, fs)            # raw pitch extractor
     f0 = pw.stonemask(x, _f0, t, fs)  # pitch refinement
     sp = pw.cheaptrick(x, f0, t, fs, fft_size=fft_size)
-    ap = pw.d4c(x, f0, t, fs)         # extract aperiodicity
+    ap = pw.d4c(x, f0, t, fs, fft_size=fft_size) # extract aperiodicity
     return {
         'f0': f0,
         'sp': sp,
@@ -36,7 +35,8 @@ def wav2pw(x, fs=16000, fft_size=FFT_SIZE):
 
 def extract(filename, fft_size=FFT_SIZE, dtype=np.float32):
     ''' Basic (WORLD) feature extraction ''' 
-    x, fs = sf.read(filename)
+    x, fs = sf.read(filename, always_2d=True)
+    x = x.mean(1)  # to ensure that we can deal with stereo audios
     features = wav2pw(x, fs, fft_size=fft_size)
     ap = features['ap']
     f0 = features['f0'].reshape([-1, 1])
@@ -137,9 +137,11 @@ def read_whole_features(file_pattern, num_epochs=1):
         `feature`: `dict` whose keys are `sp`, `ap`, `f0`, `en`, `speaker`
     '''
     files = tf.gfile.Glob(file_pattern)
+    print('{} files found'.format(len(files)))
     filename_queue = tf.train.string_input_producer(files, num_epochs=num_epochs)
     reader = tf.WholeFileReader()
     key, value = reader.read(filename_queue)
+    print("Processing {}".format(key), flush=True)
     value = tf.decode_raw(value, tf.float32)
     value = tf.reshape(value, [-1, FEAT_DIM])
     return {

@@ -16,7 +16,7 @@ def main():
     tf.gfile.MkDir('./etc')
 
     # ==== Save max and min value ====
-    x = read_whole_features(args.train_dir)
+    x = read_whole_features(args.train_file_pattern)
     x_all = list()
     y_all = list()
     f0_all = list()
@@ -25,11 +25,15 @@ def main():
         while True:
             try:
                 features = sess.run(x)
+                print('Processing {}'.format(features['filename']))
                 x_all.append(features['sp'])
                 y_all.append(features['speaker'])
                 f0_all.append(features['f0'])
-            except:
-                break
+            # except:
+            #     break
+            finally:
+                # break
+                pass
 
     x_all = np.concatenate(x_all, axis=0)
     y_all = np.concatenate(y_all, axis=0)
@@ -37,8 +41,11 @@ def main():
 
 
     # ==== F0 stats ====
+    import pdb; pdb.set_trace()
     for s in SPEAKERS:
+        print('Speaker {}'.format(s), flush=True)
         f0 = f0_all[SPEAKERS.index(s) == y_all]
+        print('  len: {}'.format(len(f0)))
         f0 = f0[f0 > 2.]
         f0 = np.log(f0)
         mu, std = f0.mean(), f0.std()
