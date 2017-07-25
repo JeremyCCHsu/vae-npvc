@@ -39,9 +39,9 @@ def wav2pw(x, fs=16000, fft_size=FFT_SIZE):
 
 def extract(filename, fft_size=FFT_SIZE, dtype=np.float32):
     ''' Basic (WORLD) feature extraction ''' 
-    x, fs = librosa.load(filename, sr=args.fs, mono=True)
+    x, _ = librosa.load(filename, sr=args.fs, mono=True)
     x = x.astype(np.float64)
-    features = wav2pw(x, fs, fft_size=fft_size)
+    features = wav2pw(x, args.fs, fft_size=fft_size)
     ap = features['ap']
     f0 = features['f0'].reshape([-1, 1])
     sp = features['sp']

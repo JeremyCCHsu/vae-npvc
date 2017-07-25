@@ -20,8 +20,10 @@
     },
 	"training": {
         "datadir": [
+			"./dataset/kamiya/bin/Training Set/SF1/*.bin",			
 			"./dataset/kamiya/bin/Training Set/SF2/*.bin",
 			"./dataset/kamiya/bin/Training Set/SM1/*.bin",
+			"./dataset/kamiya/bin/Training Set/SM2/*.bin",			
 			"./dataset/kamiya/bin/Training Set/TM3/*.bin"
 		],
 		"batch_size": 16,
