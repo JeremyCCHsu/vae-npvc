@@ -1,16 +1,19 @@
-import tensorflow as tf
-import pyworld as pw
-import soundfile as sf
-import numpy as np
 import os
-
 from os.path import join
-from librosa.core import resample
+
+# import soundfile as sf
+import librosa
+import numpy as np
+import pyworld as pw
+import tensorflow as tf
+
+# from librosa.core import resample
 
 args = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('dir_to_wav', None, 'Dir to *.wav')
 tf.app.flags.DEFINE_string('dir_to_bin', None, 'Dir to output *.bin')
 tf.app.flags.DEFINE_integer('fs', 16000, 'Global sampling frequency')
+tf.app.flags.DEFINE_float('f0_ceil', 500, 'Global f0 ceiling')
 
 EPSILON = 1e-10
 SPEAKERS = ['SF1', 'SF2', 'SF3', 'SM1', 'SM2',
@@ -23,7 +26,7 @@ RECORD_BYTES = FEAT_DIM * 4  # all features saved in `float32`
 
 def wav2pw(x, fs=16000, fft_size=FFT_SIZE):
     ''' Extract WORLD feature from waveform '''
-    _f0, t = pw.dio(x, fs)            # raw pitch extractor
+    _f0, t = pw.dio(x, fs, f0_ceil=args.f0_ceil)            # raw pitch extractor
     f0 = pw.stonemask(x, _f0, t, fs)  # pitch refinement
     sp = pw.cheaptrick(x, f0, t, fs, fft_size=fft_size)
     ap = pw.d4c(x, f0, t, fs, fft_size=fft_size) # extract aperiodicity
@@ -36,10 +39,8 @@ def wav2pw(x, fs=16000, fft_size=FFT_SIZE):
 
 def extract(filename, fft_size=FFT_SIZE, dtype=np.float32):
     ''' Basic (WORLD) feature extraction ''' 
-    x, fs = sf.read(filename, always_2d=True)
-    x = x.mean(1)  # to ensure that we can deal with stereo audios
-    if fs != args.fs:
-        x = resample(x, fs, args.fs)
+    x, fs = librosa.load(filename, sr=args.fs, mono=True)
+    x = x.astype(np.float64)
     features = wav2pw(x, fs, fft_size=fft_size)
     ap = features['ap']
     f0 = features['f0'].reshape([-1, 1])
