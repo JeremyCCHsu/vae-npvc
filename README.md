@@ -131,8 +131,9 @@ Note:
 2. Tip: when creating a new trainer, overwrite `_optimize()` and the main loop in `train()`.
 3. Code orgainzation
 
-<img src="etc/CodeOrganizaion.png" /> 
-<!-- ![Code organization](./etc/Code Organizaion.png) -->
+<!-- <img src="etc/CodeOrganizaion.png" />  -->
+ ![Code organization](./etc/Code Organizaion.png) 
+
 
 <br/>
 
