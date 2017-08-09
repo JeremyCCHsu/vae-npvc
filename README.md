@@ -132,7 +132,7 @@ Note:
 3. Code orgainzation
 
 <!-- <img src="etc/CodeOrganizaion.png" />  -->
- ![Code organization](etc/Code Organizaion.png) 
+ ![Code organization](etc/CodeOrganizaion.png) 
 
 
 <br/>
