@@ -7,7 +7,6 @@ import soundfile as sf
 
 from util.wrapper import load
 from analyzer import read_whole_features, SPEAKERS, pw2wav
-from model.vae import VAWGAN
 from analyzer import Tanhize
 from datetime import datetime
 from importlib import import_module
