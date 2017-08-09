@@ -3,7 +3,7 @@ from tensorflow.contrib import slim
 from util.image import nchw_to_nhwc
 from util.layers import (GaussianKLD, GaussianLogDensity, GaussianSampleLayer,
                          Layernorm, conv2d_nchw_layernorm, lrelu)
-from model.wgan import GradientPenaltyWGAN
+# from model.wgan import GradientPenaltyWGAN
 
 class ConvVAE(object):
     def __init__(self, arch, is_training=False):

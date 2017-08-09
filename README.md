@@ -1,6 +1,30 @@
-# Papers
-1. [Voice Conversion from Non-parallel Corpora Using Variational Auto-encoder](https://arxiv.org/abs/1610.04019)  
-2. [Voice Conversion from Unaligned Corpora using Variational Autoencoding Wasserstein Generative Adversarial Networks](https://arxiv.org/abs/1704.00849)
+
+<!-- # Papers -->
+Re-implementation of our paper [Voice Conversion from Non-parallel Corpora Using Variational Auto-encoder](https://arxiv.org/abs/1610.04019).  
+<!-- 2. [Voice Conversion from Unaligned Corpora using Variational Autoencoding Wasserstein Generative Adversarial Networks](https://arxiv.org/abs/1704.00849) -->
+<br/>
+
+
+# Usage
+1. Run `bash download.sh` to prepare the VCC2016 dataset.  
+2. Run `analyzer.py` to extract features and write features into binary files. (This takes a few minutes.)  
+3. Run `build.py` to record some stats, such as spectral extrema and pitch.  
+4. To train a VAE, for example, run
+```bash
+python main.py \
+--model ConvVAE \
+--trainer VAETrainer \
+--architecture architecture-vae-vcc2016.json
+```  
+5. To convert the voice, run
+```bash
+python convert.py \
+--src SF1 \
+--trg TM3 \
+--model ConvVAE \
+--checkpoint logdir/train/0719-2303-34-2017/[model.ckpt-[id]] \
+--file_pattern "./dataset/vcc2016/bin/Testing Set/{}/*.bin"
+```
 <br/>
 
 
@@ -45,28 +69,6 @@ Voice Conversion Challenge 2016 (VCC2016): [download page](http://datashare.is.e
 
 <br/>
 
-
-# Usage
-1. Run `bash download.sh` to prepare the VCC2016 dataset.  
-2. Run `analyzer.py` to extract features and write features into binary files. (This takes a few minutes.)  
-3. Run `build.py` to record some stats, such as spectral extrema and pitch.  
-4. To train a VAE, for example, run
-```bash
-python main.py \
---model ConvVAE \
---trainer VAETrainer \
---architecture architecture-vae-vcc2016.json
-```  
-5. To convert the voice, run
-```bash
-python convert.py \
---src SF1 \
---trg TM3 \
---model ConvVAE \
---checkpoint logdir/train/0719-2303-34-2017/[model.ckpt-[id]] \
---file_pattern "./dataset/vcc2016/bin/Testing Set/{}/*.bin"
-```
-<br/>
 
 
 # File/Folder
