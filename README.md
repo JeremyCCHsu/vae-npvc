@@ -16,15 +16,18 @@ python main.py \
 --trainer VAETrainer \
 --architecture architecture-vae-vcc2016.json
 ```  
-5. To convert the voice, run
+5. You can find your models in `./logdir/train/[timestamp]`  
+6. To convert the voice, run
 ```bash
 python convert.py \
 --src SF1 \
 --trg TM3 \
 --model ConvVAE \
---checkpoint logdir/train/0719-2303-34-2017/[model.ckpt-[id]] \
+--checkpoint logdir/train/[timestamp]/[model.ckpt-[id]] \
 --file_pattern "./dataset/vcc2016/bin/Testing Set/{}/*.bin"
-```
+```  
+7. You can find the converted wav files in `./logdir/output/[timestamp]`  
+
 <br/>
 
 
@@ -128,17 +131,17 @@ Note:
 
 # Modification Tips
 1. Define a new model (and an accompanying trainer) and then specify the `--model` and `--trainer` of `main.py`.  
-2. Tip: when creating a new trainer, overwrite `_optimize()` and the main loop in `train()`.
+2. Tip: when creating a new trainer, override `_optimize()` and the main loop in `train()`.
 3. Code orgainzation
 
 <!-- <img src="etc/CodeOrganizaion.png" />  -->
  ![Code organization](etc/CodeOrganization.png) 
-
+This isn't a UML; rather, the arrows indicates input-output relations only.
 
 <br/>
 
 # Difference from the original paper
-1. WORLD vocoder is chosen in this repo over STRAIGHT because the former is open-sourced whereas the latter isn't.  
+1. WORLD vocoder is chosen in this repo instead of STRAIGHT because the former is open-sourced whereas the latter isn't.  
    I use [pyworld](https://github.com/JeremyCCHsu/Python-Wrapper-for-World-Vocoder), Python wrapper of the WORLD, in this repo.
 2. Global variance post-filtering was not included in this repo.
 3. In our VAE-NPVC paper, we didn't apply the [-1, 1] normalization; we did in our VAWGAN-NPVC paper.
@@ -147,14 +150,10 @@ Note:
 
 # About
 The original code base was originally built in March, 2016.  
-Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and put it on this repo.
+Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and put it in this repo.
 
 
 # TODO
  - [ ] `util` submodule (add to README)
- - [o] Code architecture graph (UML)
- - [o] license
- - [ ] Github
  - [ ] GV
- - [ ] logdir output/train
  
