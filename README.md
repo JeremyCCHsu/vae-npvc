@@ -8,8 +8,7 @@ Python 3.5
 
 - Tensorflow-gpu 1.2.1
 - Numpy
-<!-- - Soundfile -->
-- librosa
+- Soundfile
 - PyWorld
   - Cython
 <br/>

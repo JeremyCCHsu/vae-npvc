@@ -1,7 +1,7 @@
 import os
 from os.path import join
 
-import librosa
+import soundfile as sf
 import numpy as np
 import pyworld as pw
 import tensorflow as tf
@@ -36,8 +36,11 @@ def wav2pw(x, fs=16000, fft_size=FFT_SIZE):
 
 def extract(filename, fft_size=FFT_SIZE, dtype=np.float32):
     ''' Basic (WORLD) feature extraction ''' 
-    x, _ = librosa.load(filename, sr=args.fs, mono=True)
-    x = x.astype(np.float64)
+    # x, _ = librosa.load(filename, sr=args.fs, mono=True)
+    # x = x.astype(np.float64)
+    x, _ = sf.read(filename, sample_rate=args.fs, channels=1, dtype=np.float64)
+    if len(x.shape) > 1:
+        x = np.mean(x, 1)
     features = wav2pw(x, args.fs, fft_size=fft_size)
     ap = features['ap']
     f0 = features['f0'].reshape([-1, 1])
