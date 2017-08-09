@@ -29,10 +29,7 @@ def main():
                 x_all.append(features['sp'])
                 y_all.append(features['speaker'])
                 f0_all.append(features['f0'])
-            # except:
-            #     break
             finally:
-                # break
                 pass
 
     x_all = np.concatenate(x_all, axis=0)
@@ -93,7 +90,7 @@ def test():
     # ==== Direct read =====
     f = './dataset/vcc2016/bin/Training Set/SF1/100001.bin'
     features = np.fromfile(f, np.float32)
-    features = np.reshape(features, [-1, 513*2 + 1 + 1 + 1]) # en, fs, spk
+    features = np.reshape(features, [-1, 513*2 + 1 + 1 + 1]) # f0, en, spk
 
     y = pw2wav(features)
     sf.write('test2.wav', y, 16000)

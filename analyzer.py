@@ -1,13 +1,11 @@
 import os
 from os.path import join
 
-# import soundfile as sf
 import librosa
 import numpy as np
 import pyworld as pw
 import tensorflow as tf
 
-# from librosa.core import resample
 
 args = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string('dir_to_wav', None, 'Dir to *.wav')
@@ -16,8 +14,7 @@ tf.app.flags.DEFINE_integer('fs', 16000, 'Global sampling frequency')
 tf.app.flags.DEFINE_float('f0_ceil', 500, 'Global f0 ceiling')
 
 EPSILON = 1e-10
-SPEAKERS = ['SF1', 'SF2', 'SF3', 'SM1', 'SM2',
-            'TF1', 'TF2', 'TM1', 'TM2', 'TM3']
+SPEAKERS = [s.strip() for s in tf.gfile.GFile('./etc/speakers.tsv', 'r').readlines()]
 FFT_SIZE = 1024
 SP_DIM = FFT_SIZE // 2 + 1
 FEAT_DIM = SP_DIM + SP_DIM + 1 + 1 + 1  # [sp, ap, f0, en, s]
@@ -190,6 +187,4 @@ if __name__ == '__main__':
     extract_and_save_bin_to(
         args.dir_to_bin,
         args.dir_to_wav,
-        # './dataset/vcc2016/bin',
-        # './dataset/vcc2016/wav',
     )

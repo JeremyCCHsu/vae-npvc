@@ -42,7 +42,6 @@ Voice Conversion Challenge 2016 (VCC2016): [download page](http://datashare.is.e
 
 # Model  
  - [x] Conditional VAE
- - [ ] Conditional VAE + WGAN
 
 <br/>
 
@@ -83,8 +82,9 @@ dataset
         ...
         TM3
 etc
-  xmax.npf
-  xmin.npf
+  speakers.tsv  (one speaker per line)  
+  (xmax.npf)  
+  (xmin.npf)  
 util (submodule)
 model
 logdir
@@ -149,8 +149,9 @@ Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and 
 
 # TODO
  - [ ] `util` submodule (add to README)
- - [ ] Code architecture graph (UML)
- - [ ] license
+ - [o] Code architecture graph (UML)
+ - [o] license
  - [ ] Github
  - [ ] GV
  - [ ] logdir output/train
+ 
