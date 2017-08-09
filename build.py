@@ -1,6 +1,7 @@
 import numpy as np
 import pyworld as pw
-import soundfile as sf
+# import soundfile as sf
+import librosa
 import tensorflow as tf
 from analyzer import SPEAKERS, pw2wav, read, read_whole_features
 
@@ -8,7 +9,7 @@ from analyzer import SPEAKERS, pw2wav, read, read_whole_features
 args = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string(
     'train_file_pattern',
-    "./dataset/vcc2016/bin/Training Set/*/*.bin",
+    './dataset/vcc2016/bin/Training Set/*/*.bin',
     'training dir (to *.bin)')
 
 
@@ -84,7 +85,7 @@ def test():
         features = sess.run(features)
 
     y = pw2wav(features)
-    sf.write('test1.wav', y, 16000)  # TODO fs should be specified externally.
+    librosa.output.write_wav('test1.wav', y, 16000)  # TODO fs should be specified externally.
 
 
     # ==== Direct read =====
@@ -93,7 +94,7 @@ def test():
     features = np.reshape(features, [-1, 513*2 + 1 + 1 + 1]) # f0, en, spk
 
     y = pw2wav(features)
-    sf.write('test2.wav', y, 16000)
+    librosa.output.write_wav('test2.wav', y, 16000)
 
 
 if __name__ == '__main__':

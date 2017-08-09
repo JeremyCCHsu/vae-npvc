@@ -1,7 +1,37 @@
-
-<!-- # Papers -->
 Re-implementation of our paper [Voice Conversion from Non-parallel Corpora Using Variational Auto-encoder](https://arxiv.org/abs/1610.04019).  
 <!-- 2. [Voice Conversion from Unaligned Corpora using Variational Autoencoding Wasserstein Generative Adversarial Networks](https://arxiv.org/abs/1704.00849) -->
+
+
+# Dependency
+Linux Ubuntu 16.04  
+Python 3.5  
+
+- Tensorflow-gpu 1.2.1
+- Numpy
+<!-- - Soundfile -->
+- librosa
+- PyWorld
+  - Cython
+<br/>
+
+
+# Setting up the environment
+For example,  
+```bash
+conda create -n py35tf121 -y python=3.5
+source activate py35tf121
+pip install -U pip
+pip install -r requirements.txt
+```
+
+
+### Note:
+<!-- 1. `soundfile` might require `sudo apt-get install`.  -->
+1. You can use any virtual environment packages (e.g. `virtualenv`)
+2. If your Tensorflow is the CPU version, you might have to replace all the `NCHW` ops in my code because Tensorflow-CPU only supports `NHWC` op and will report an error: `InvalidArgumentError (see above for traceback): Conv2DCustomBackpropInputOp only supports NHWC.`
+3. I recommend installing Tensorflow from the link on their Github repo.  
+    `pip install -U [*.whl link on the Github page]` 
+
 <br/>
 
 
@@ -26,39 +56,8 @@ python convert.py \
 --checkpoint logdir/train/[timestamp]/[model.ckpt-[id]] \
 --file_pattern "./dataset/vcc2016/bin/Testing Set/{}/*.bin"
 ```  
+*Please fill in `timestampe` and `model id`.  
 7. You can find the converted wav files in `./logdir/output/[timestamp]`  
-
-<br/>
-
-
-# Dependency
-Linux Ubuntu 16.04  
-Python 3.5  
-
-- Tensorflow-gpu 1.2.1
-- Numpy
-- Soundfile
-- PyWorld
-  - Cython
-<br/>
-
-
-# Setting up the environment
-For example,  
-```bash
-conda create -n py35tf121 -y python=3.5
-source activate py35tf121
-pip install -U pip
-pip install -r requirements.txt
-```
-
-
-### Note:
-1. `soundfile` might require `sudo apt-get install`. 
-2. You can use any virtual environment packages (e.g. `virtualenv`)
-1. If your Tensorflow is the CPU version, you might have to replace all the `NCHW` ops in my code because Tensorflow-CPU only supports `NHWC` op and will report an error: `InvalidArgumentError (see above for traceback): Conv2DCustomBackpropInputOp only supports NHWC.`
-2. I recommend installing Tensorflow from the link on their Github repo.  
-    `pip install -U [*.whl link on the Github page]` 
 
 <br/>
 

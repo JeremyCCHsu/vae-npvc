@@ -3,7 +3,8 @@ import os
 
 import tensorflow as tf
 import numpy as np
-import soundfile as sf
+# import soundfile as sf
+import librosa
 
 from util.wrapper import load
 from analyzer import read_whole_features, SPEAKERS, pw2wav
@@ -111,7 +112,7 @@ def main():
                 feat.update({'sp': sp, 'f0': f0})
                 y = pw2wav(feat)
                 oFilename = make_output_wav_name(output_dir, feat['filename'])
-                sf.write(oFilename, y, FS)
+                librosa.output.write_wav(oFilename, y, FS)
             except:
                 break
 
