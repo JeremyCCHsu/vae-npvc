@@ -23,9 +23,8 @@ pip install -U pip
 pip install -r requirements.txt
 ```
 
-
 ### Note:
-<!-- 1. `soundfile` might require `sudo apt-get install`.  -->
+1. `soundfile` might require `sudo apt-get install`.  
 1. You can use any virtual environment packages (e.g. `virtualenv`)
 2. If your Tensorflow is the CPU version, you might have to replace all the `NCHW` ops in my code because Tensorflow-CPU only supports `NHWC` op and will report an error: `InvalidArgumentError (see above for traceback): Conv2DCustomBackpropInputOp only supports NHWC.`
 3. I recommend installing Tensorflow from the link on their Github repo.  
