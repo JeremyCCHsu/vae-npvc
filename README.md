@@ -153,4 +153,5 @@ Tensorflow was in version 0.10 or earlier, so I decided to refactor my code and 
 # TODO
  - [ ] `util` submodule (add to README)
  - [ ] GV
- 
+ - [ ] `build.py` should accept subsets of speakers
+
