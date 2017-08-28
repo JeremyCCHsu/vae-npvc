@@ -1,4 +1,6 @@
 bash download.sh
+pip install -U pip
+pip install -r requirements.txt
 python analysze.py
 python build.py
 python main.py \
