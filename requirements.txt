@@ -1,4 +1,4 @@
 tensorflow-gpu
 soundfile
-cython
+librosa
 pyworld

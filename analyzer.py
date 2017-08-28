@@ -14,6 +14,7 @@ tf.app.flags.DEFINE_integer('fs', 16000, 'Global sampling frequency')
 tf.app.flags.DEFINE_float('f0_ceil', 500, 'Global f0 ceiling')
 
 EPSILON = 1e-10
+SETS = ['Training Set', 'Testing Set']  # TODO: for VCC2016 only
 SPEAKERS = [s.strip() for s in tf.gfile.GFile('./etc/speakers.tsv', 'r').readlines()]
 FFT_SIZE = 1024
 SP_DIM = FFT_SIZE // 2 + 1
@@ -37,7 +38,6 @@ def wav2pw(x, fs=16000, fft_size=FFT_SIZE):
 def extract(filename, fft_size=FFT_SIZE, dtype=np.float32):
     ''' Basic (WORLD) feature extraction ''' 
     x, _ = librosa.load(filename, sr=args.fs, mono=True, dtype=np.float64)
-    import pdb; pdb.set_trace()
     features = wav2pw(x, args.fs, fft_size=fft_size)
     ap = features['ap']
     f0 = features['f0'].reshape([-1, 1])
@@ -48,8 +48,11 @@ def extract(filename, fft_size=FFT_SIZE, dtype=np.float32):
 
 
 def extract_and_save_bin_to(dir_to_bin, dir_to_source):
-    for d in ['Training Set', 'Testing Set']:
-        for s in SPEAKERS:
+    sets = [s for s in os.listdir(dir_to_source) if s in SETS]
+    for d in sets:
+        path = join(dir_to_source, d)
+        speakers = [s for s in os.listdir(path) if s in SPEAKERS]
+        for s in speakers:
             path = join(dir_to_source, d, s)
             output_dir = join(dir_to_bin, d, s)
             if not tf.gfile.Exists(output_dir):
