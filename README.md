@@ -1,6 +1,6 @@
 Re-implementation of our paper [Voice Conversion from Non-parallel Corpora Using Variational Auto-encoder](https://arxiv.org/abs/1610.04019).  
 <!-- 2. [Voice Conversion from Unaligned Corpora using Variational Autoencoding Wasserstein Generative Adversarial Networks](https://arxiv.org/abs/1704.00849) -->
-
+(for VAWGAN, please switch to `vawgan` branch)
 
 # Dependency
 Linux Ubuntu 16.04  
