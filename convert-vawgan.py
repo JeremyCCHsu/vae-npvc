@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 
 import tensorflow as tf
 import numpy as np
@@ -17,32 +18,17 @@ tf.app.flags.DEFINE_string('checkpoint', None, 'root of log dir')
 tf.app.flags.DEFINE_string('src', 'SF1', 'source speaker [SF1 - SM2]')
 tf.app.flags.DEFINE_string('trg', 'TM3', 'target speaker [SF1 - TM3]')
 tf.app.flags.DEFINE_string('output_dir', './logdir', 'root of output dir')
-tf.app.flags.DEFINE_string('module', 'model.vae', 'Module')
-tf.app.flags.DEFINE_string('model', None, 'Model')
+tf.app.flags.DEFINE_string('module', 'model.vawgan', 'Module')
+tf.app.flags.DEFINE_string('model', 'VAWGAN', 'Model')
 tf.app.flags.DEFINE_string('file_pattern', './dataset/vcc2016/bin/Testing Set/{}/*.bin', 'file pattern')
 tf.app.flags.DEFINE_string(
     'speaker_list', './etc/speakers.tsv', 'Speaker list (one speaker per line)'
 )
 
-if args.model is None:
-    raise ValueError(
-        '\n  You MUST specify `model`.' +\
-        '\n    Use `python convert.py --help` to see applicable options.'
-    )
-
-module = import_module(args.module, package=None)
-MODEL = getattr(module, args.model)
-
-FS = 16000
-
-with open(args.speaker_list) as fp:
-    SPEAKERS = [l.strip() for l in fp.readlines()]
-
 def make_output_wav_name(output_dir, filename):
     basename = str(filename, 'utf8')
     basename = os.path.split(basename)[-1]
     basename = os.path.splitext(basename)[0]
-    # print('Processing {}'.format(basename))        
     return os.path.join(
         output_dir, 
         '{}-{}-{}.wav'.format(args.src, args.trg, basename)
@@ -68,10 +54,38 @@ def nh_to_nchw(x):
         x = tf.expand_dims(x, 1)      # [b, h] => [b, c=1, h]
         return tf.expand_dims(x, -1)  # => [b, c=1, h, w=1]
 
+def nh_to_nhwc(x):
+    with tf.name_scope('NH_to_NHWC'):
+        return tf.expand_dims(tf.expand_dims(x, -1), -1)
 
-def main():
+
+def main(unused_args=None):
+    # args(sys.argv)
+
+    if args.model is None:
+        raise ValueError(
+            '\n  You MUST specify `model`.' +\
+            '\n    Use `python convert.py --help` to see applicable options.'
+        )
+
+    module = import_module(args.module, package=None)
+    MODEL = getattr(module, args.model)
+
+    FS = 16000
+
+    with open(args.speaker_list) as fp:
+        SPEAKERS = [l.strip() for l in fp.readlines()]
+
+
     logdir, ckpt = os.path.split(args.checkpoint)
-    arch = tf.gfile.Glob(os.path.join(logdir, 'architecture*.json'))[0]  # should only be 1 file
+    if 'VAE' in logdir:
+        _path_to_arch, _ = os.path.split(logdir)
+    else:
+        _path_to_arch = logdir
+    arch = tf.gfile.Glob(os.path.join(_path_to_arch, 'architecture*.json'))
+    if len(arch) != 1:
+        print('WARNING: found more than 1 architecture files!')
+    arch = arch[0]
     with open(arch) as fp:
         arch = json.load(fp)
 
@@ -83,12 +97,12 @@ def main():
     features = read_whole_features(args.file_pattern.format(args.src))
 
     x = normalizer.forward_process(features['sp'])
-    x = nh_to_nchw(x)
+    x = nh_to_nhwc(x)
     y_s = features['speaker']
     y_t_id = tf.placeholder(dtype=tf.int64, shape=[1,])
     y_t = y_t_id * tf.ones(shape=[tf.shape(x)[0],], dtype=tf.int64)
 
-    machine = MODEL(arch)
+    machine = MODEL(arch, is_training=False)
     z = machine.encode(x)
     x_t = machine.decode(z, y_t)  # NOTE: the API yields NHWC format
     x_t = tf.squeeze(x_t)
@@ -108,8 +122,8 @@ def main():
     sv = tf.train.Supervisor(logdir=output_dir)
     with sv.managed_session() as sess:
         load(saver, sess, logdir, ckpt=ckpt)
+        print()
         while True:
-            # counter = 1
             try:
                 feat, f0, sp = sess.run(
                     [features, f0_t, x_t],
@@ -120,12 +134,11 @@ def main():
                 oFilename = make_output_wav_name(output_dir, feat['filename'])
                 print('\rProcessing {}'.format(oFilename), end='')
                 sf.write(oFilename, y, FS)
-                # counter += 1
-            except:
+            except KeyboardInterrupt:
                 break
             finally:
                 pass
         print()
 
 if __name__ == '__main__':
-    main()
+    tf.app.run()

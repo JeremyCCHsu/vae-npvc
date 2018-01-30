@@ -158,7 +158,7 @@ class VAWGANTrainer(GANTrainer):
             # summary_writer=summary_writer,
             # summary_op=None,
             # is_chief=True,
-            # save_model_secs=600,
+            save_model_secs=100,
             global_step=self.opt['global_step'])
 
 

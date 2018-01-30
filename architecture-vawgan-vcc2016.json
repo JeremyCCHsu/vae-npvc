@@ -27,15 +27,21 @@
 		"l2-reg": 1e-6
     },
 	"training": {
-        "datadir": ["./dataset/vcc2016/bin/*/SF1/100*.bin", "./dataset/vcc2016/bin/*/TM3/100*.bin"],
-		"batch_size": 16,
-		"epoch": 200,
-		"lr": 1e-4,
+		"src_dir": "./dataset/vcc2016/bin/*/SF1/100*.bin",
+		"trg_dir": "./dataset/vcc2016/bin/*/TM3/100*.bin",
+		"batch_size": 256,
+		"lr": 1e-5,
+		"lr_schedule": [ [999, 1e-4]],
 		"beta1": 0.5,
 		"beta2": 0.999,
         "nIterD": 5,
         "lambda": 10,
-        "alpha": 50.0,
-		"max_iter": 200000
+		"max_iter": 200000,
+		"epoch_vae": 15,
+		"epoch_vawgan": 45,
+		"gamma": 50,
+		"n_unroll": 5,
+		"n_unroll_intense": 100,
+		"clamping": 0.01
 	}
 }

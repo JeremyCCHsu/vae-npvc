@@ -100,6 +100,8 @@ class ConvVAE(object):
             if i < len(net['output']) -1:
                 x = Layernorm(x, [1, 2, 3], 'ConvT-LN{}'.format(i))
                 x = lrelu(x)
+            else:
+                x = tf.nn.tanh(x) # not 100% necessary
         return x
 
 
@@ -121,7 +123,7 @@ class ConvVAE(object):
                 GaussianLogDensity(
                     slim.flatten(x),
                     slim.flatten(xh),
-                    tf.zeros_like(slim.flatten(xh))),
+                    tf.zeros_like(slim.flatten(xh))),  # TODO exp -tf.log(1/9) + 
             )
 
         loss = dict()

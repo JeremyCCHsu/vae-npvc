@@ -11,6 +11,8 @@ from util.wrapper import validate_log_dirs
 
 args = tf.app.flags.FLAGS
 tf.app.flags.DEFINE_string(
+    'corpus_name', 'vcc2016', 'Corpus name')
+tf.app.flags.DEFINE_string(
     'logdir_root', None, 'root of log dir')
 tf.app.flags.DEFINE_string(
     'logdir', None, 'log dir')
@@ -23,26 +25,21 @@ tf.app.flags.DEFINE_string(
 tf.app.flags.DEFINE_string(
     'architecture', 'architecture-vawgan-vcc2016.json', 'network architecture')
 
-tf.app.flags.DEFINE_string('model_module', 'model.vae', 'Model module')
-tf.app.flags.DEFINE_string('model', 'ConvVAE', 'Model: ConvVAE, VAWGAN')
+tf.app.flags.DEFINE_string('model_module', 'model.vawgan', 'Model module')
+tf.app.flags.DEFINE_string('model', 'VAWGAN', 'Model: ConvVAE, VAWGAN')
 
-tf.app.flags.DEFINE_string('trainer_module', 'trainer.vae', 'Trainer module')
-tf.app.flags.DEFINE_string('trainer', 'VAETrainer', 'Trainer: VAETrainer, VAWGANTrainer')
+tf.app.flags.DEFINE_string('trainer_module', 'trainer.vawgan', 'Trainer module')
+tf.app.flags.DEFINE_string('trainer', 'VAWGANTrainer', 'Trainer: VAETrainer, VAWGANTrainer')
 
-def main(unused_args):
+
+def main(unused_args=None):
     ''' NOTE: The input is rescaled to [-1, 1] '''
-
-    if args.model is None or args.trainer is None:
-        raise ValueError(
-            '\n  Both `model` and `trainer` should be assigned.' +\
-            '\n  Use `python main.py --help` to see applicable options.'
-        )
-
     module = import_module(args.model_module, package=None)
     MODEL = getattr(module, args.model)
 
     module = import_module(args.trainer_module, package=None)
     TRAINER = getattr(module, args.trainer)
+
 
     dirs = validate_log_dirs(args)
     tf.gfile.MakeDirs(dirs['logdir'])
@@ -54,24 +51,34 @@ def main(unused_args):
         json.dump(arch, f, indent=4)
 
     normalizer = Tanhize(
-        xmax=np.fromfile('./etc/xmax.npf'),
-        xmin=np.fromfile('./etc/xmin.npf'),
+        xmax=np.fromfile('./etc/{}_xmax.npf'.format(args.corpus_name)),
+        xmin=np.fromfile('./etc/{}_xmin.npf'.format(args.corpus_name)),
     )
 
-    x, y = read(
-        file_pattern=arch['training']['datadir'],
+    x_s, y_s = read(
+        file_pattern=arch['training']['src_dir'],
         batch_size=arch['training']['batch_size'],
-        capacity=4096,
-        min_after_dequeue=3000,
+        capacity=2048,
+        min_after_dequeue=1024,
         normalizer=normalizer,
+        data_format='NHWC',
+    )
+
+    x_t, y_t = read(
+        file_pattern=arch['training']['trg_dir'],
+        batch_size=arch['training']['batch_size'],
+        capacity=2048,
+        min_after_dequeue=1024,
+        normalizer=normalizer,
+        data_format='NHWC',
     )
 
     machine = MODEL(arch, is_training=True)
 
-    loss = machine.loss(x, y)
+    loss = machine.loss(x_s, y_s, x_t, y_t)
     trainer = TRAINER(loss, arch, args, dirs)
     trainer.train(nIter=arch['training']['max_iter'], machine=machine)
 
 
 if __name__ == '__main__':
-    tf.app.run()
+    main()
