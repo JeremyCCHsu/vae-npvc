@@ -61,7 +61,7 @@ python convert.py \
 
 
 # Dataset
-Voice Conversion Challenge 2016 (VCC2016): [download page](http://datashare.is.ed.ac.uk/handle/10283/2042)  
+Voice Conversion Challenge 2016 (VCC2016): [download page](https://datashare.is.ed.ac.uk/handle/10283/2211)  
 <br/>
 
 # Model  
