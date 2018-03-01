@@ -1,9 +1,10 @@
-mkdir -p dataset/vcc2016/wav
-cd dataset
-wget "https://datashare.is.ed.ac.uk/download/DS_10283_2042.zip"
-unzip SUPERSEDED_-_The_Voice_Conversion_Challenge_2016.zip vcc2016_training.zip evaluation_all.zip
+datadir="dataset/vcc2016/wav/"
+datalink="https://datashare.is.ed.ac.uk/bitstream/handle/10283/2211/"
+mkdir -p $datadir
+wget "${datalink}license_text"
+wget "${datalink}vcc2016_training.zip"
+wget "${datalink}evaluation_all.zip"
 unzip vcc2016_training.zip
-mv vcc2016_training "./vcc2016/wav/Training Set"
-unzip evaluation_all.zip -d "vcc2016/wav/Testing Set"
-rm evaluation_all.zip vcc2016_training.zip
-cd ..
+unzip evaluation_all.zip
+mv vcc2016_training "${datadir}Training Set"
+mv evaluation_all "${datadir}Testing Set"
